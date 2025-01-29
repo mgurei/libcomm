@@ -5,18 +5,38 @@
 #
 CC = gcc
 CFLAGS = -Wall -Wextra -pedantic -std=c11 -I./src -I./src/protocols
-LDFLAGS =
+LDFLAGS = -L./build -lcomm
+SRC_DIR = ./src
+TEST_DIR = ./tests
+BUILD_DIR = ./build
 
-SRC = $(wildcard src/*.c src/protocols/*.c)
-OBJ = $(SRC:.c=.o)
+SRC_FILES = $(wildcard $(SRC_DIR)/**/*.c) $(wildcard $(SRC_DIR)/*.c)
+OBJ_FILES = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRC_FILES))
 
-all: libcomm.so
+TEST_FILES = $(wildcard $(TEST_DIR)/*.c)
+TEST_EXECUTABLES = $(patsubst $(TEST_DIR)/%.c, $(BUILD_DIR)/%, $(TEST_FILES))
 
-libcomm.so: $(OBJ)
-	$(CC) -shared -fPIC -o $@ $(OBJ) $(LDFLAGS)
+all: $(BUILD_DIR)/libcomm.so $(TEST_EXECUTABLES)
+
+$(BUILD_DIR)/libcomm.so: $(OBJ_FILES)
+	$(CC) -shared -o $@ $^
+
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -fPIC -c -o $@ $<
+
+$(BUILD_DIR)/%: $(TEST_DIR)/%.c $(BUILD_DIR)/libcomm.so
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
 clean:
-	rm -rf *.so *.o
+	rm -rf $(BUILD_DIR)
+
+test: $(TEST_EXECUTABLES)
+	@for test in $(TEST_EXECUTABLES); do \
+		LD_LIBRARY_PATH=$(BUILD_DIR) $$test; \
+	done
+
+.PHONY: all clean test
 
 # Explanation:
 # - `CC`: Compiler (gcc).

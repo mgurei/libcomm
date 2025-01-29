@@ -3,13 +3,14 @@
 
 /**
  * @brief UART configuration structure
-*/
-typedef struct {
+ */
+typedef struct
+{
     int baud_rate; // Baud rate
     int data_bits; // Data bits
     int stop_bits; // Stop bits
-    char parity; // Parity
-    char *port; // Port
+    char parity;   // Parity
+    char *port;    // Port
 } uart_config_t;
 
 /**
