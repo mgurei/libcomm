@@ -1,4 +1,5 @@
 #include "../src/protocols/uart_protocol.h"
+#include "test_framework.h"
 #include <stdio.h>
 #include <fcntl.h>
 #include <string.h>
@@ -29,7 +30,7 @@ void test_uart_init(void) {
     };
 
     int result = uart_init(&config);
-    printf("UART init result: %s\n", result == 0 ? "PASS" : "FAIL");
+    ASSERT(result == 0);    
 }
 
 void test_uart_send(void) {
@@ -37,11 +38,11 @@ void test_uart_send(void) {
     int len = strlen(data);
 
     int result = uart_send(data, len);
-    printf("UART send result: %s\n", result == len ? "PASS" : "FAIL");
+    ASSERT(result == len);
 
     char buffer[256] = {0};
     read(master_fd, buffer, sizeof(buffer));
-    printf("Data received on master: %s\n", buffer);
+    ASSERT(strcmp(data, buffer) == 0);   
 }
 
 void test_uart_receive(void) {
@@ -52,20 +53,18 @@ void test_uart_receive(void) {
     int len = sizeof(buffer);
 
     int result = uart_receive(buffer, len);
-    printf("UART receive result: %d\n", result);
-    if (result > 0) {
-        printf("Received data: %s\n", buffer);
-    }
+    ASSERT(result == strlen(data));
+    ASSERT(strcmp(data, buffer) == 0);
 }
 
 int main(void) {
     setup_pty();
 
-    printf("Testing UART protocol...\n");
-    test_uart_init();
-    
-    test_uart_send();
-    test_uart_receive();
+    REGISTER_TEST(test_uart_init);
+    REGISTER_TEST(test_uart_send);
+    REGISTER_TEST(test_uart_receive);
+
+    RUN_TESTS();
 
     close(master_fd);
     close(slave_fd);

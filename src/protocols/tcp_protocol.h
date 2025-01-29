@@ -22,4 +22,10 @@ int tcp_send(const char *data, int len);
  */
 int tcp_receive(char *buffer, int len);
 
+/**
+ * @brief Get the socket file descriptor
+ * @return Socket file descriptor
+ */
+int tcp_get_socket(void);
+
 #endif // TCP_PROTOCOL_H

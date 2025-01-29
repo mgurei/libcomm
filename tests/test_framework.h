@@ -27,19 +27,28 @@ static int test_count = 0;
 #define RUN_TESTS() \
     do { \
         int pass_count = 0; \
+        int fail_count = 0; \
+        printf("\nRunning %d tests...\n", test_count); \
+        printf("========================================\n"); \
         for (int i = 0; i < test_count; ++i) { \
-            printf("Running test: %s\n", test_cases[i].name); \
+            printf("Test %d: %s\n", i + 1, test_cases[i].name); \
+            printf("----------------------------------------\n"); \
             test_cases[i].func(); \
-            printf("Test %s: PASS\n", test_cases[i].name); \
+            printf("Test %s: \033[0;32mPASS\033[0m\n", test_cases[i].name); \
             pass_count++; \
+            printf("========================================\n"); \
         } \
-        printf("Passed %d/%d tests\n", pass_count, test_count); \
+        printf("Summary:\n"); \
+        printf("Passed: %d\n", pass_count); \
+        printf("Failed: %d\n", fail_count); \
+        printf("========================================\n"); \
     } while (0)
 
 #define ASSERT(cond) \
     do { \
         if (!(cond)) { \
             fprintf(stderr, "Assertion failed: %s, file %s, line %d\n", #cond, __FILE__, __LINE__); \
+            printf("Test %s: \033[0;31mFAIL\033[0m\n", __func__); \
             return; \
         } \
     } while (0)

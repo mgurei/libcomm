@@ -34,14 +34,18 @@ static int configure_uart(uart_config_t *config) {
     tty.c_cflag |= CREAD | CLOCAL; // Enable READ & ignore ctrl lines
 
     // Non-canonical mode
-    tty.c_lflag &= ~ICANON;
-    tty.c_lflag &= ~ECHO;
-    tty.c_lflag &= ~ECHOE;
-    tty.c_lflag &= ~ECHONL;
-    tty.c_lflag &= ~ISIG;
+    tty.c_lflag &= ~ICANON; // Disable canonical mode  
+    tty.c_lflag &= ~ECHO;   // Disable echo
+    tty.c_lflag &= ~ECHOE;  // Disable erasure
+    tty.c_lflag &= ~ECHONL; // Disable new-line echo
+    tty.c_lflag &= ~ISIG;   // Disable interpretation of INTR, QUIT and SUSP
+    tty.c_iflag &= ~(IXON | IXOFF | IXANY); // Disable software flow control
+    tty.c_iflag &= ~(ICRNL | INLCR);        // Disable translation of carriage return and line feed
+    tty.c_oflag &= ~OPOST;                 // Disable output processing
 
-    // Raw output
-    tty.c_oflag &= ~OPOST;
+    // Set read timeout
+    tty.c_cc[VMIN] = 0;  // Minimum number of characters to read
+    tty.c_cc[VTIME] = 10; // Time to wait for data (tenths of a second)
 
     // Set attributes
     if (tcsetattr(uart_fd, TCSANOW, &tty) != 0) {
@@ -71,14 +75,27 @@ int uart_init(uart_config_t *config) {
 
 int uart_send(const char *data, int len) {
     if (uart_fd < 0) {
+        perror("write");
         return -1;
     }
-    return write(uart_fd, data, len);
+    int bytes_sent = write(uart_fd, data, len);
+    if (bytes_sent < 0) {
+        perror("write");
+        return -1;
+    }
+
+    return bytes_sent;
 }
 
 int uart_receive(char *buffer, int len) {
     if (uart_fd < 0) {
         return -1;
     }
-    return read(uart_fd, buffer, len);
+    int bytes_received = read(uart_fd, buffer, len);
+    if (bytes_received < 0) {
+        perror("read");
+        return -1;
+    }
+
+    return bytes_received;
 }

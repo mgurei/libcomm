@@ -1,4 +1,5 @@
-
+#include "../src/protocols/tcp_protocol.h"
+#include "test_framework.h"
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -7,6 +8,7 @@
 #include <pthread.h>
 
 #define SERVER_PORT 12345
+volatile int server_running = 1;
 
 void *mock_server(void *arg) {
     int server_fd, client_fd;
@@ -48,7 +50,7 @@ void *mock_server(void *arg) {
 
     printf("Client connected\n");
 
-    while (1) {
+    while (server_running) {
         int bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
         if (bytes_received <= 0) {
             break;
@@ -62,11 +64,27 @@ void *mock_server(void *arg) {
 
     close(client_fd);
     close(server_fd);
+    printf("Mock server stopped\n");
     return NULL;
 }
 
-void print_test_result(const char *test_name, int result) {
-    printf("%s: %s\n", test_name, result ? "FAIL" : "PASS");
+void test_tcp_init(void) {
+    tcp_init();
+    ASSERT(tcp_get_socket() != -1);
+}
+
+void test_tcp_send(void) {
+    const char *message = "Hello, Server!";
+    int bytes_sent = tcp_send(message, strlen(message));
+    ASSERT(bytes_sent == strlen(message));
+}
+
+void test_tcp_receive(void) {
+    char buffer[1024];
+    int bytes_received = tcp_receive(buffer, sizeof(buffer) - 1);
+    ASSERT(bytes_received > 0);
+    buffer[bytes_received] = '\0';
+    ASSERT(strcmp(buffer, "Message received") == 0);
 }
 
 int main() {
@@ -76,40 +94,15 @@ int main() {
     sleep(1); // Wait for server to start
 
     // Client-side code to connect to mock server
-    int sockfd;
-    struct sockaddr_in server_addr;
-    char buffer[1024];
+    REGISTER_TEST(test_tcp_init);
+    REGISTER_TEST(test_tcp_send);
+    REGISTER_TEST(test_tcp_receive);
 
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0) {
-        perror("socket");
-        return 1;
-    }
-    
-    memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(SERVER_PORT);
-    inet_pton(AF_INET, "127.0.0.1", &server_addr.sin_addr);
+    RUN_TESTS();
 
-    if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-        perror("connect");
-        close(sockfd);
-        return 1;
-    }
+    server_running = 0; // Signal the server to stop
+    shutdown(tcp_get_socket(), SHUT_RDWR); // Close the client socket
+    pthread_join(server_thread, NULL);  // Wait for the server thread to finish
 
-    const char *message = "Hello, Server!";
-    int send_result = send(sockfd, message, strlen(message), 0);
-    print_test_result("TCP send", send_result < 0);
-
-    int bytes_received = recv(sockfd, buffer, sizeof(buffer) - 1, 0);
-    if (bytes_received > 0) {
-        buffer[bytes_received] = '\0';
-        printf("Received from server: %s\n", buffer);
-    }
-    print_test_result("TCP receive", bytes_received <= 0);
-    
-    close(sockfd);
-
-    pthread_join(server_thread, NULL);
     return 0;
 }
