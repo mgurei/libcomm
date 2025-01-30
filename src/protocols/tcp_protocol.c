@@ -64,7 +64,7 @@ int tcp_receive(char *buffer, int len) {
     return bytes_received; // Return num bytes received
 }
 
-int tcp_get_socket(void) {
+int tcp_get_fd(void) {
     return sockfd;
 }
 

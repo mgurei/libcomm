@@ -28,7 +28,7 @@ int tcp_receive(char *buffer, int len);
  * @brief Get the socket file descriptor
  * @return Socket file descriptor
  */
-int tcp_get_socket(void);
+int tcp_get_fd(void);
 
 /**
  * @brief TCP protocol structure

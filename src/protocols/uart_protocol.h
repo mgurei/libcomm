@@ -38,6 +38,11 @@ int uart_send(const char *data, int len);
  */
 int uart_receive(char *buffer, int len);
 
+/**
+ * @brief Get the file descriptor for the UART protocol
+ */
+int uart_get_fd(void);
+
 /** 
  * @brief UART protocol structure
  */

@@ -101,6 +101,10 @@ int uart_receive(char *buffer, int len) {
     return bytes_received;
 }
 
+int uart_get_fd(void) {
+    return uart_fd;
+}
+
 protocol_t uart_protocol = {
     .init = (void (*)(void))uart_init,
     .send = uart_send,
