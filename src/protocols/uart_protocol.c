@@ -1,4 +1,5 @@
 #include "uart_protocol.h"
+#include "protocol.h"
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
@@ -99,3 +100,9 @@ int uart_receive(char *buffer, int len) {
 
     return bytes_received;
 }
+
+protocol_t uart_protocol = {
+    .init = (void (*)(void))uart_init,
+    .send = uart_send,
+    .receive = uart_receive
+};

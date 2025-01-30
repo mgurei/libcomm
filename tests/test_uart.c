@@ -1,3 +1,4 @@
+#include "../src/comm.h"
 #include "../src/protocols/uart_protocol.h"
 #include "test_framework.h"
 #include <stdio.h>
@@ -29,6 +30,7 @@ void test_uart_init(void) {
         .port = slave_name
     };
 
+    comm_init((protocol_t *)&uart_protocol);
     int result = uart_init(&config);
     ASSERT(result == 0);    
 }
@@ -53,16 +55,18 @@ void test_uart_receive(void) {
     int len = sizeof(buffer);
 
     int result = uart_receive(buffer, len);
-    ASSERT(result == strlen(data));
+    ASSERT(result == (int)strlen(data));
     ASSERT(strcmp(data, buffer) == 0);
 }
 
 int main(void) {
+    REGISTER_TEST_FILE("UART Tests", "Tests for UART protocol implementation");
+
     setup_pty();
 
-    REGISTER_TEST(test_uart_init);
-    REGISTER_TEST(test_uart_send);
-    REGISTER_TEST(test_uart_receive);
+    REGISTER_TEST(test_uart_init, "Initialize UART with pseudo-terminal");
+    REGISTER_TEST(test_uart_send, "Send data through UART and verify transmission");
+    REGISTER_TEST(test_uart_receive, "Receive data through UART and verify reception");
 
     RUN_TESTS();
 

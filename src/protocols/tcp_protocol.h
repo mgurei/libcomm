@@ -1,6 +1,8 @@
 #ifndef TCP_PROTOCOL_H
 #define TCP_PROTOCOL_H
 
+#include "protocol.h"
+
 /**
  * @brief Initialize the TCP protocol
  */
@@ -27,5 +29,10 @@ int tcp_receive(char *buffer, int len);
  * @return Socket file descriptor
  */
 int tcp_get_socket(void);
+
+/**
+ * @brief TCP protocol structure
+ */
+extern protocol_t tcp_protocol;
 
 #endif // TCP_PROTOCOL_H

@@ -1,3 +1,4 @@
+#include "../src/comm.h"
 #include "../src/protocols/tcp_protocol.h"
 #include "test_framework.h"
 #include <stdio.h>
@@ -11,6 +12,8 @@
 volatile int server_running = 1;
 
 void *mock_server(void *arg) {
+    (void)arg; // Unused  --->  -Wunused-parameter
+
     int server_fd, client_fd;
     struct sockaddr_in server_addr, client_addr;
     socklen_t client_addr_len = sizeof(client_addr);
@@ -69,34 +72,35 @@ void *mock_server(void *arg) {
 }
 
 void test_tcp_init(void) {
-    tcp_init();
+    comm_init(&tcp_protocol);
     ASSERT(tcp_get_socket() != -1);
 }
 
 void test_tcp_send(void) {
     const char *message = "Hello, Server!";
-    int bytes_sent = tcp_send(message, strlen(message));
-    ASSERT(bytes_sent == strlen(message));
+    int bytes_sent = comm_send(message, strlen(message));
+    ASSERT(bytes_sent == (int)strlen(message));
 }
 
 void test_tcp_receive(void) {
     char buffer[1024];
-    int bytes_received = tcp_receive(buffer, sizeof(buffer) - 1);
+    int bytes_received = comm_receive(buffer, sizeof(buffer) - 1);
     ASSERT(bytes_received > 0);
     buffer[bytes_received] = '\0';
     ASSERT(strcmp(buffer, "Message received") == 0);
 }
 
 int main() {
+    REGISTER_TEST_FILE("TCP Tests", "Tests for TCP protocol implementation");
+
     pthread_t server_thread;
     pthread_create(&server_thread, NULL, mock_server, NULL);
-
     sleep(1); // Wait for server to start
 
     // Client-side code to connect to mock server
-    REGISTER_TEST(test_tcp_init);
-    REGISTER_TEST(test_tcp_send);
-    REGISTER_TEST(test_tcp_receive);
+    REGISTER_TEST(test_tcp_init, "Initialize TCP connection to mock server");
+    REGISTER_TEST(test_tcp_send, "Send data through TCP and verify transmission");
+    REGISTER_TEST(test_tcp_receive, "Receive data through TCP and verify reception");
 
     RUN_TESTS();
 

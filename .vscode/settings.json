@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "tcp_protocol.h": "c"
+        "tcp_protocol.h": "c",
+        "socket.h": "c",
+        "test_framework.h": "c"
     }
 }

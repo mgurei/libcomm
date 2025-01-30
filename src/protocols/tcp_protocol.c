@@ -1,4 +1,5 @@
 #include "tcp_protocol.h"
+#include "protocol.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -66,3 +67,9 @@ int tcp_receive(char *buffer, int len) {
 int tcp_get_socket(void) {
     return sockfd;
 }
+
+protocol_t tcp_protocol = {
+    .init = tcp_init,
+    .send = tcp_send,
+    .receive = tcp_receive
+};

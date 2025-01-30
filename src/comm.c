@@ -1,20 +1,27 @@
 #include "comm.h"
-#include "protocols/tcp_protocol.h"
+#include "protocols/protocol.h"
 #include <stdio.h>
 
-void comm_init(void) {
-    // TODO: Communication module initialization
-    tcp_init();
+static protocol_t *current_protocol = NULL;
+
+void comm_init(protocol_t *protocol) {
+    current_protocol = protocol;
+    current_protocol->init();
     printf("Communication module initialized\n");
 }
 
-int comm_send_data(const char *data, int len) {
-    // TODO: Send data code here
-    return tcp_send(data, len);
+int comm_send(const char *data, int len) {
+    if (current_protocol == NULL) {
+        fprintf(stderr, "Communication module not initialized\n");
+        return -1;
+    }
+    return current_protocol->send(data, len);
 }
 
-int comm_receive_data(char *buffer, int len) {
-    // TODO: Receive data code here
-    // For now, simulate receiving data
-    return tcp_receive(buffer, len);
+int comm_receive(char *buffer, int len) {
+    if(current_protocol == NULL) {
+        fprintf(stderr, "Communication module not initialized\n");
+        return -1;
+    }
+    return current_protocol->receive(buffer, len);
 }

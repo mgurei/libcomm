@@ -1,6 +1,8 @@
 #ifndef UART_PROTOCOL_H
 #define UART_PROTOCOL_H
 
+#include "protocol.h"
+
 /**
  * @brief UART configuration structure
  */
@@ -35,5 +37,10 @@ int uart_send(const char *data, int len);
  * @return Number of bytes received
  */
 int uart_receive(char *buffer, int len);
+
+/** 
+ * @brief UART protocol structure
+ */
+extern protocol_t uart_protocol;
 
 #endif // UART_PROTOCOL_H
